@@ -21,7 +21,8 @@ replaceSubString pattern withThis s@(x:xs)
     | otherwise              = x : replaceSubString pattern withThis xs
 
 
-replaceSubString :: [Char] -> [Char] -> [Char] -> [Char]
-replaceSubString pattern withThis s@(x:xs) 
-    | pattern `isPrefixOf` s = withThis ++ replaceSubString pattern withThis (drop (length pattern) s)
-    | otherwise              = x : replaceSubString pattern withThis xs
+replaceFirstSubString :: [Char] -> [Char] -> [Char] -> [Char]
+replaceFirstSubString _ _ [] = []
+replaceFirstSubString pattern withThis s@(x:xs) 
+    | pattern `isPrefixOf` s = withThis ++ (drop (length pattern) s)
+    | otherwise              = x : replaceFirstSubString pattern withThis xs

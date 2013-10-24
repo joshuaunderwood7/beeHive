@@ -1,8 +1,9 @@
 module Hed where
-import System.IO (hFlush)
+import System.IO (hFlush, stdout)
 import StringUtil
 import FileMan
 import Data.Char (toUpper)
+import Control.Exception 
 
 {- the structure of the document is 
  -  [[privious lines]] and these are reversed
@@ -36,7 +37,7 @@ replaceLine (Buffer lineNum prev cur post) newline =
 
 replaceSubLine :: Document -> [Char] -> [Char] -> Document
 replaceSubLine (Buffer lineNum prev cur post) replace withThis = 
-    Buffer lineNum prev (StringUtil.replaceSubString replace withThis cur) post 
+    Buffer lineNum prev (StringUtil.replaceFirstSubString replace withThis cur) post 
 
 gotoLine :: Document -> Int -> Document
 gotoLine org@(Buffer lineNum prev cur post) newline
@@ -64,9 +65,10 @@ executeCommand command doc
     | abriv == 'g' && args == 1 = gotoLine doc (((read.head.(drop 1).words) command)::Int )
     | abriv == 'r' && args >= 1 = replaceLine doc stament
     | abriv == 'i' && args >= 1 = insertLine doc stament
+    | abriv == 's' && args == 2 = replaceSubLine doc ((head.words) command) ((head.(drop 1).words) command)
     | otherwise    = doc
         where abriv   = (head.head.words) command
-              stament = (unwords.tail.words) command
+              stament = ((tail.dropWhile (/=' ')).tail) command
               args    = length.tail.words $ command
 
 promptLine doc@(Buffer lineNum _ _ _) =  do 
@@ -81,16 +83,20 @@ progLoop input = do
         case (head command) of
             'Q' -> input
             'V' -> input >>= (putStrLn.allToString) >> progLoop input
-            'v' -> do
+            'v' ->  catch ( do
                 doc <-input
                 let ltop = ((read.head.(drop 1).words) command) :: Int 
                 let lbot = ((read.head.(drop 2).words) command) :: Int 
                 putStrLn $ partToString doc ltop lbot 
-                progLoop input
+                progLoop input ) (handleError (progLoop input)) 
             _   -> do
                 doc <- input 
-                progLoop $ return $ executeCommand command doc 
+                catch ( progLoop $ return $ executeCommand command doc) 
+                      ( handleError (progLoop input) ) 
     else progLoop input
+
+handleError  :: IO a -> SomeException -> IO a
+handleError callback exception = (print.show) exception >> callback
 
 main = do
     let a = []
