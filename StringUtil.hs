@@ -1,5 +1,6 @@
 module StringUtil where
 import Data.List
+import Data.Text (split)
 
 stringComp :: [Char] -> [Char] -> Bool
 stringComp [] [] = True
@@ -26,3 +27,4 @@ replaceFirstSubString _ _ [] = []
 replaceFirstSubString pattern withThis s@(x:xs) 
     | pattern `isPrefixOf` s = withThis ++ (drop (length pattern) s)
     | otherwise              = x : replaceFirstSubString pattern withThis xs
+

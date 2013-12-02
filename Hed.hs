@@ -1,5 +1,5 @@
 module Hed where
-import System.IO (hFlush, stdout)
+import System.IO 
 import StringUtil
 import FileMan
 import Data.Char (toUpper)
@@ -14,6 +14,9 @@ import Control.Exception
 {- and the current line number -}
 
 {- so the document structure is:-}
+data Line = LineBuffer Int [Char] Char [Char]
+    deriving (Show)
+
 data Document = Buffer Int [[Char]] [Char] [[Char]]
     deriving (Show)
 
@@ -65,7 +68,7 @@ executeCommand command doc
     | abriv == 'g' && args == 1 = gotoLine doc (((read.head.(drop 1).words) command)::Int )
     | abriv == 'r' && args >= 1 = replaceLine doc stament
     | abriv == 'i' && args >= 1 = insertLine doc stament
-    | abriv == 's' && args == 2 = replaceSubLine doc ((head.words) command) ((head.(drop 1).words) command)
+    | abriv == 's' && args == 2 = replaceSubLine doc ((head.words) stament) ((head.(drop 1).words) stament)
     | otherwise    = doc
         where abriv   = (head.head.words) command
               stament = ((tail.dropWhile (/=' ')).tail) command
@@ -112,4 +115,6 @@ main = do
     progLoop $ readFileToBuffer "test.txt"  fillDocument
     --print "saving test.txt"
     --(writeBufferToFile "test.txt").allToString --The document--
+    hSetBuffering stdin NoBuffering
+    getChar >>= print
     print "bye"
