@@ -116,5 +116,13 @@ main = do
     --print "saving test.txt"
     --(writeBufferToFile "test.txt").allToString --The document--
     hSetBuffering stdin NoBuffering
-    getChar >>= print
-    print "bye"
+    --textInput ""
+
+textInput :: String -> IO String
+textInput x = do
+    input <- getChar
+    if (input == '\n') 
+        then return $ reverse x
+    else do 
+        print x
+        textInput  (input : x)
