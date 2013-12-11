@@ -104,14 +104,12 @@ handleError  :: IO a -> SomeException -> IO a
 handleError callback exception = (print.show) exception >> callback
 
 getFilename :: [a] ->  Maybe a
-getFilename x
-    | length x <= 0 = Nothing 
-    | otherwise     = Just (head x) 
+getFilename []    = Nothing
+getFilename (x:_) = Just x
 
 getFilename' :: [String] ->  String
-getFilename' x
-    | length x <= 0 = "test.txt" 
-    | otherwise     = head x 
+getFilename' []    = "test.txt" 
+getFilename' (x:_) = x 
 
 main = do
     fileName <- getArgs >>= return.getFilename'
