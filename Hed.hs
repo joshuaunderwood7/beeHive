@@ -1,8 +1,10 @@
 module Hed where
 import System.IO 
+import System.Environment 
 import StringUtil
 import FileMan
 import Data.Char (toUpper)
+import Data.Maybe
 import Control.Exception 
 
 {- the structure of the document is 
@@ -101,21 +103,26 @@ progLoop input = do
 handleError  :: IO a -> SomeException -> IO a
 handleError callback exception = (print.show) exception >> callback
 
+getFilename :: [a] ->  Maybe a
+getFilename x
+    | length x <= 0 = Nothing 
+    | otherwise     = Just (head x) 
+
+getFilename' :: [String] ->  String
+getFilename' x
+    | length x <= 0 = "test.txt" 
+    | otherwise     = head x 
+
 main = do
-    let a = []
-    {-
-    let a = Buffer 4 ["3","2","1"] "4" ["5","6","7"]
-    let b =  replaceSubLine (insertLine a "Pies") "ie" "zz"
-    print a
-    print b
-    putStrLn $ partToString b (-20) 20
-    putStrLn $ allToString (insertLine a "Pies") 
-    putStrLn $ allToString b 
-    -}
-    progLoop $ readFileToBuffer "test.txt"  fillDocument
+    fileName <- getArgs >>= return.getFilename'
+    print fileName
+
+    progLoop $ readFileToBuffer fileName fillDocument
+    --
     --print "saving test.txt"
     --(writeBufferToFile "test.txt").allToString --The document--
-    hSetBuffering stdin NoBuffering
+
+    --hSetBuffering stdin NoBuffering
     --textInput ""
 
 textInput :: String -> IO String
