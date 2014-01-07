@@ -81,6 +81,15 @@ promptLine doc@(Buffer lineNum _ _ _) =  do
     hFlush stdout
     getLine
 
+insertMode :: IO Document -> IO Document
+insertMode input = do
+    line <- putStr "I " >> input >>= promptLine
+    case line of 
+        ".." -> input
+        _    -> do
+            doc <- input
+            insertMode $ return $ insertLine doc line
+
 progLoop :: IO Document -> IO Document 
 progLoop input = do
     command <- input >>= promptLine
@@ -94,6 +103,7 @@ progLoop input = do
                 let lbot = ((read.head.(drop 2).words) command) :: Int 
                 putStrLn $ partToString doc ltop lbot 
                 progLoop input ) (handleError (progLoop input)) 
+            '.' -> insertMode input >>= progLoop.return 
             _   -> do
                 doc <- input 
                 catch ( progLoop $ return $ executeCommand command doc) 
@@ -111,18 +121,6 @@ getFilename' :: [String] ->  String
 getFilename' []    = "test.txt" 
 getFilename' (x:_) = x 
 
-main = do
-    fileName <- getArgs >>= return.getFilename'
-    print fileName
-
-    progLoop $ readFileToBuffer fileName fillDocument
-    --
-    --print "saving test.txt"
-    --(writeBufferToFile "test.txt").allToString --The document--
-
-    hSetBuffering stdin NoBuffering
-    textInput ""
-
 textInput :: String -> IO String
 textInput x = do
     input <- getChar
@@ -131,3 +129,20 @@ textInput x = do
     else do 
         print $ reverse x
         textInput  (input : x)
+
+main = do
+    hSetBuffering stdin NoBuffering
+    hSetBuffering stdin LineBuffering
+
+    fileName <- getArgs >>= return.getFilename'
+    print fileName
+
+    progLoop $ readFileToBuffer fileName fillDocument
+
+    --print "saving test.txt"
+    --(writeBufferToFile "test.txt").allToString --The document--
+
+    print "bye."
+
+    --textInput ""
+
