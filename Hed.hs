@@ -120,8 +120,8 @@ main = do
     --print "saving test.txt"
     --(writeBufferToFile "test.txt").allToString --The document--
 
-    --hSetBuffering stdin NoBuffering
-    --textInput ""
+    hSetBuffering stdin NoBuffering
+    textInput ""
 
 textInput :: String -> IO String
 textInput x = do
@@ -129,5 +129,5 @@ textInput x = do
     if (input == '\n') 
         then return $ reverse x
     else do 
-        print x
+        print $ reverse x
         textInput  (input : x)
