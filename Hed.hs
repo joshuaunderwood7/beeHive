@@ -76,6 +76,9 @@ executeCommand command doc
               stament = ((tail.dropWhile (/=' ')).tail) command
               args    = length.tail.words $ command
 
+getLineNum :: Document -> Int
+getLineNum (Buffer lineNum _ _ _) = lineNum   
+
 promptLine doc@(Buffer lineNum _ _ _) =  do 
     putStr $ (show lineNum)  ++ " > "
     hFlush stdout
@@ -89,6 +92,23 @@ insertMode input = do
         _    -> do
             doc <- input
             insertMode $ return $ insertLine doc line
+
+visualMode :: IO Document -> IO Document
+visualMode input = do
+    doc <- input
+    let line = getLineNum doc
+    hSetBuffering stdin NoBuffering
+    putStr $ "V " ++ (show line) ++ " > "
+    putStr $partToString doc line line   
+    hFlush stdout
+    command <- getChar
+    case (command) of
+        'j' -> return (executeCommand ("g " ++ (show (line + 1))) doc) >>= visualMode.return
+        'k' -> return (executeCommand ("g " ++ (show (line - 1))) doc) >>= visualMode.return
+        'q' -> do 
+            hSetBuffering stdin LineBuffering 
+            input
+
 
 progLoop :: IO Document -> IO Document 
 progLoop input = do
@@ -104,6 +124,7 @@ progLoop input = do
                 putStrLn $ partToString doc ltop lbot 
                 progLoop input ) (handleError (progLoop input)) 
             '.' -> insertMode input >>= progLoop.return 
+            'n' -> visualMode input >>= progLoop.return
             _   -> do
                 doc <- input 
                 catch ( progLoop $ return $ executeCommand command doc) 
